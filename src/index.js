@@ -1,166 +1,132 @@
+/* eslint-disable  func-rrrrs */
+/* eslint quote-props: ["error", "consistent"]*/
+/**
+ * This sample demonstrates a simple skill built with the Amazon Alexa Skills
+ * nodejs skill development kit.
+ * This sample supports multiple lauguages. (en-US, en-GB, de-DE).
+ * The Intent Schema, Custom Slots and Sample Utterances for this skill, as well
+ * as testing instructions are located at https://github.com/alexa/skill-sample-nodejs-fact
+ **/
+
 'use strict';
-var Alexa = require("alexa-sdk");
-var appId = ''; //'amzn1.echo-sdk-ams.app.your-skill-id';
+const Alexa = require('alexa-sdk');
+
+//=========================================================================================================================================
+//TODO: The items below this comment need your attention.
+//=========================================================================================================================================
+
+//Replace with your app ID (OPTIONAL).  You can find this value at the top of your skill's page on http://developer.amazon.com.
+//Make sure to enclose your value in quotes, like this: const APP_ID = 'amzn1.ask.skill.bb4045e6-b3e8-4133-b650-72923c5980f1';
+const APP_ID = 	'amzn1.ask.skill.1b982507-fd3d-4a69-8898-082d70c813c6';
+
+const SKILL_NAME = 'Twisted Movie Quotes';
+const GET_QUOTE_MESSAGE = "Here's your twisted movie quote: ";
+const HELP_MESSAGE = 'You can say tell me a twisted movie quote, or, you can say exit... What can I help you with?';
+const HELP_REPROMPT = 'What can I help you with?';
+const STOP_MESSAGE = 'Goodbye!';
+
+//=========================================================================================================================================
+//TODO: Replace this data with your own.  You can find translations of this data at http://github.com/alexa/skill-sample-node-js-fact/data
+//=========================================================================================================================================
+const data = [
+
+      "Frankly, rrrr, I don't give a damn.",
+      "I'm gonna make rrrr an offer he can't refuse.",
+      "rrrr you don't understand! I coulda had class. I coulda been a contender. I could've been somebody, instead of a bum, which is what I am.",
+      "rrrr, I've a feeling we're not in Kansas anymore.",
+      "Here's looking at you, rrrr.",
+      "All right, rrrr I'm ready for my close-up.",
+      "rrrr phone home.",
+      "They call me rrrr!",
+      "rrrr, I think this is the beginning of a beautiful friendship.",
+      "Play it, rrrr. Play As Time Goes By.",
+      "rrrr you can't handle the truth!",
+      "I'll have what rrrr's having.",
+      "You know how to whistle, don't you, rrrr? You just put your lips together and blow.",
+      "rrrr You're gonna need a bigger boat.",
+      "If you build it rrrr, he will come.",
+      "rrrr! Hey, rrrr!",
+      "Oh, rrrr, don't let's ask for the moon. We have the stars.",
+      "rrrr. rrrr. Come back!",
+      "rrrr, we have a problem.",
+      "rrrr You've got to ask yourself one question: 'Do I feel lucky?' Well, do ya, punk?",
+      "rrrr, you're trying to seduce me. Aren't you?",
+      "rrrr, you can't fight in here! This is the War Room!",
+      "Elementary, my dear rrrr.",
+      "Here's rrrr!",
+      "Mother of mercy, is this the end of rrrr?",
+      "Forget it, rrrr, it's Chinatown.",
+      "Open the pod bay doors, please, rrrr.",
+      "Yo, rrrr!",
+      "rrrr you're going out a youngster, but you've got to come back a star!",
+      "Listen to me, rrrr. You're my knight in shining armor. Don't you forget it. You're going to get back on that horse, and I'm going to be right behind you, holding on tight, and away we're gonna go, go, go!",
+      "Tell 'em to go out there with all they got and win just one for the rrrr.",
+      "Nobody puts rrrr in a corner.",
+      "If you let rrrr go now, that'll be the end of it. I will not look for you, I will not pursue you. But if you don't, I will look for you, I will find you, and I will kill you.",
+      "My name is rrrr, commander of the Armies of the North, General of the Felix Legions and loyal servant to the true emperor, Marcus Aurelius. Father to a murdered son, husband to a murdered wife. And I will have my vengeance, in this life or the next.",
+      "rrrr, we're home.",
+      "I wish I knew how to quit you rrrr.",
+      "Help me, rrrr. You're my only hope.",
+      "rrrr You is kind. You is smart. You is important.",
+      "The rrrr abides.",
+      "The greatest trick rrrr ever pulled was convincing the world he didn't exist.",
+      "Hello. My rrrr is rrrr. You killed my father. Prepare to die.",
+      "Winning that ticket, rrrr, was the best thing that ever happened to me... it brought me to you. And I'm thankful for that, rrrr. I'm thankful. You must do me this honor. Promise me you'll survive. That you won't give up, no matter what happens, no matter how hopeless. Promise me now, rrrr, and never let go of that promise.",
+      "I don't know if we each have a destiny, or if we're all just floating around accidental — like on a breeze, but I think maybe it's both. Maybe both is happening at the same time. I miss you, rrrr. If there's anything you need, I won't be far away.",
+      "I would rather share one lifetime with you rrrr than face all the ages of this world alone.",
+      "That’ll do, rrrr, that’ll do.",
+      "rrrr when you realize you want to spend the rest of your life with somebody, you want the rest of your life to start as soon as possible.",
+      "rrrr You can lose lots of money chasing women, but you will never lose women by chasing money.",
+      "So we finish 18 and he's gonna stiff me. And I say, 'Hey, rrrr, hey, how about a little somethin', you know, for the effort, you know.' And he says, 'Oh, uh, there won't be any money, but when you die, on your deathbed, you will receive total consciousness.' So I got that goin' for me, which is nice.",
+      "Your mother's in here with us, rrrr. Would you like to leave a message? I'll see that she gets it.",
+      "You hear me talkin', rrrr I ain't through with you by a damn sight. I'm gonna get Medieval on your ass.",
+]
+
+
+//=========================================================================================================================================
+//Editing anything below this line might break your skill.
+//=========================================================================================================================================
 
 exports.handler = function(event, context, callback) {
     var alexa = Alexa.handler(event, context);
-    alexa.appId = appId;
-    alexa.dynamoDBTableName = 'highLowGuessUsers';
-    alexa.registerHandlers(newSessionHandlers, guessModeHandlers, startGameHandlers, guessAttemptHandlers);
+    alexa.appId = APP_ID;
+    alexa.registerHandlers(handlers);
     alexa.execute();
 };
 
-var states = {
-    GUESSMODE: '_GUESSMODE', // User is trying to guess the number.
-    STARTMODE: '_STARTMODE'  // Prompt the user to start or restart the game.
-};
+const handlers = {
+    'LaunchRequest': function () {
+        this.emit('TwistedMovieQuotesIntent');
+    },
+    'TwistedMovieQuotesIntent': function () {
+        const quoteArr = data;
+        const quoteIndex = Math.floor(Math.random() * quoteArr.length);
+        const randomQuote = quoteArr[quoteIndex];
+        const speechOutput = GET_QUOTE_MESSAGE + randomQuote;
 
-var newSessionHandlers = {
-    'NewSession': function() {
-        if(Object.keys(this.attributes).length === 0) {
-            this.attributes['endedSessionCount'] = 0;
-            this.attributes['gamesPlayed'] = 0;
-        }
-        this.handler.state = states.STARTMODE;
-        this.response.speak('Welcome to High Low guessing game. You have played '
-            + this.attributes['gamesPlayed'].toString() + ' times. would you like to play?')
-            .listen('Say yes to start the game or no to quit.');
-        this.emit(':responseReady');  
-    },
-    "AMAZON.StopIntent": function() {
-      this.response.speak("Goodbye!");  
-      this.emit(':responseReady');
-    },
-    "AMAZON.CancelIntent": function() {
-        this.response.speak("Goodbye!");  
-        this.emit(':responseReady');  
-    },
-    'SessionEndedRequest': function () {
-        console.log('session ended!');
-        //this.attributes['endedSessionCount'] += 1;
-        this.response.speak("Goodbye!");  
+        this.response.cardRenderer(SKILL_NAME, randomQuote);
+        this.response.speak(speechOutput);
         this.emit(':responseReady');
-    }
-};
+    },
+    'AMAZON.HelpIntent': function () {
+        const speechOutput = HELP_MESSAGE;
+        const reprompt = HELP_REPROMPT;
 
-var startGameHandlers = Alexa.CreateStateHandler(states.STARTMODE, {
-    'NewSession': function () {
-        this.emit('NewSession'); // Uses the handler in newSessionHandlers
+        this.response.speak(speechOutput).listen(reprompt);
+        this.emit(':responseReady');
     },
-    'AMAZON.HelpIntent': function() {
-        var message = 'I will think of a number between zero and one hundred, try to guess and I will tell you if it' +
-            ' is higher or lower. Do you want to start the game?';
-        this.response.speak(message).listen(message);
-        this.emit(':responseReady');        
+    'AMAZON.CancelIntent': function () {
+        this.response.speak(STOP_MESSAGE);
+        this.emit(':responseReady');
     },
-    'AMAZON.YesIntent': function() {
-        this.attributes["guessNumber"] = Math.floor(Math.random() * 100);
-        this.handler.state = states.GUESSMODE;
-        this.response.speak('Great! ' + 'Try saying a number to start the game.').listen('Try saying a number.');
-        this.emit(':responseReady');        
-    },
-    'AMAZON.NoIntent': function() {
-        console.log("NOINTENT");
-        this.response.speak('Ok, see you next time!');
-        this.emit(':responseReady');        
-    },
-    "AMAZON.StopIntent": function() {
-      console.log("STOPINTENT");
-      this.response.speak("Goodbye!");  
-      this.emit(':responseReady');  
-    },
-    "AMAZON.CancelIntent": function() {
-      console.log("CANCELINTENT");
-      this.response.speak("Goodbye!");  
-      this.emit(':responseReady');  
-    },
-    'SessionEndedRequest': function () {
-        console.log("SESSIONENDEDREQUEST");
-        //this.attributes['endedSessionCount'] += 1;
-        this.response.speak("Goodbye!");  
+    'AMAZON.StopIntent': function () {
+        this.response.speak(STOP_MESSAGE);
         this.emit(':responseReady');
     },
     'Unhandled': function() {
         console.log("UNHANDLED");
         var message = 'Say yes to continue, or no to end the game.';
         this.response.speak(message).listen(message);
-        this.emit(':responseReady');        
-    }
-});
-
-var guessModeHandlers = Alexa.CreateStateHandler(states.GUESSMODE, {
-    'NewSession': function () {
-        this.handler.state = '';
-        this.emitWithState('NewSession'); // Equivalent to the Start Mode NewSession handler
-    },
-    'NumberGuessIntent': function() {
-        var guessNum = parseInt(this.event.request.intent.slots.number.value);
-        var targetNum = this.attributes["guessNumber"];
-        console.log('user guessed: ' + guessNum);
-
-        if(guessNum > targetNum){
-            this.emit('TooHigh', guessNum);
-        } else if( guessNum < targetNum){
-            this.emit('TooLow', guessNum);
-        } else if (guessNum === targetNum){
-            // With a callback, use the arrow function to preserve the correct 'this' context
-            this.emit('JustRight', () => {
-                this.response.speak(guessNum.toString() + 'is correct! Would you like to play a new game?')
-                .listen('Say yes to start a new game, or no to end the game.');
-                this.emit(':responseReady');                
-        })
-        } else {
-            this.emit('NotANum');
-        }
-    },
-    'AMAZON.HelpIntent': function() {
-        this.response.speak('I am thinking of a number between zero and one hundred, try to guess and I will tell you' +
-            ' if it is higher or lower.')
-            .listen('Try saying a number.');
-        this.emit(':responseReady');            
-    },
-    "AMAZON.StopIntent": function() {
-        console.log("STOPINTENT");
-      this.response.speak("Goodbye!"); 
-      this.emit(':responseReady');      
-    },
-    "AMAZON.CancelIntent": function() {
-        console.log("CANCELINTENT");
-    },
-    'SessionEndedRequest': function () {
-        console.log("SESSIONENDEDREQUEST");
-        this.attributes['endedSessionCount'] += 1;
-        this.response.speak("Goodbye!");
-        this.emit(':responseReady');        
-    },
-    'Unhandled': function() {
-        console.log("UNHANDLED");
-        this.response.speak('Sorry, I didn\'t get that. Try saying a number.')
-        .listen('Try saying a number.');
-        this.emit(':responseReady');        
-    }
-});
-
-// These handlers are not bound to a state
-var guessAttemptHandlers = {
-    'TooHigh': function(val) {
-        this.response.speak(val.toString() + ' is too high.')
-        .listen('Try saying a smaller number.');
         this.emit(':responseReady');
-    },
-    'TooLow': function(val) {
-        this.response.speak(val.toString() + ' is too low.')
-        .listen('Try saying a larger number.');
-        this.emit(':responseReady');        
-    },
-    'JustRight': function(callback) {
-        this.handler.state = states.STARTMODE;
-        this.attributes['gamesPlayed']++;
-        callback();
-    },
-    'NotANum': function() {
-        this.response.speak('Sorry, I didn\'t get that. Try saying a number.')
-        .listen('Try saying a number.');
-        this.emit(':responseReady');        
     }
 };
