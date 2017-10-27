@@ -101,8 +101,10 @@ const handlers = {
     'TwistedMovieQuotesIntent': function () {
         const quoteArr = data;
         const quoteIndex = Math.floor(Math.random() * quoteArr.length);
-        const randomQuote = quoteArr[quoteIndex];
+        const randomQuote = quoteArr[quoteIndex].replace("rrrr", "Isaac");
         const speechOutput = GET_QUOTE_MESSAGE + randomQuote;
+
+        console.log(randomQuote)
 
         this.response.cardRenderer(SKILL_NAME, randomQuote);
         this.response.speak(speechOutput);
@@ -123,10 +125,4 @@ const handlers = {
         this.response.speak(STOP_MESSAGE);
         this.emit(':responseReady');
     },
-    'Unhandled': function() {
-        console.log("UNHANDLED");
-        var message = 'Say yes to continue, or no to end the game.';
-        this.response.speak(message).listen(message);
-        this.emit(':responseReady');
-    }
-};
+  };
