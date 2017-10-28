@@ -108,15 +108,20 @@ const handlers = {
       const name = this.event.request.intent.slots.name.value;
       const quoteArr = data;
       const quoteIndex = Math.floor(Math.random() * quoteArr.length);
-      const randomQuote = quoteArr[quoteIndex].replace("rrrr", name)
-      const speechOutput = GET_QUOTE_MESSAGE + randomQuote;
+      const randomQuote = quoteArr[quoteIndex].replace("rrrr", name);
+      const randomQuote1 = randomQuote.replace("rrrr", name);
+      const randomQuote2 = randomQuote1.replace("rrrr", name);
+      const randomQuote3 = randomQuote2.replace("rrrr", name);
+      const randomQuote4 = randomQuote3.replace("rrrr", name);
+      const speechOutput = GET_QUOTE_MESSAGE + randomQuote4;
 
       console.log(randomQuote)
 
-      this.response.cardRenderer(SKILL_NAME, randomQuote);
-      this.response.speak(speechOutput);
-      this.emit(':responseReady');
+    this.response.cardRenderer(SKILL_NAME, randomQuote4);
+    this.response.speak(speechOutput);
+    this.emit(':responseReady');
   },
+
 
     // 'TwistedMovieQuotesIntent': function () {
     //     var name = GetNameIntent.event.request.intent.slots.name.value;
