@@ -11,6 +11,8 @@
 'use strict';
 const Alexa = require('alexa-sdk');
 
+var GA_TRACKING_ID = 'UA-109227896-1';
+
 //=========================================================================================================================================
 //TODO: The items below this comment need your attention.
 //=========================================================================================================================================
@@ -21,7 +23,7 @@ const APP_ID = 	'amzn1.ask.skill.1b982507-fd3d-4a69-8898-082d70c813c6';
 
 const SKILL_NAME = 'Twisted Movie Quotes';
 const GET_QUOTE_MESSAGE = "Here's your twisted movie quote: ";
-const HELP_MESSAGE = 'You can say tell me a twisted movie quote, or, you can say exit... What can I help you with?';
+const HELP_MESSAGE = 'You can say tell me a twisted movie quote, or, you can say stop... What can I help you with?';
 const HELP_REPROMPT = 'What can I help you with?';
 const STOP_MESSAGE = 'Goodbye!';
 
@@ -86,6 +88,33 @@ const data = [
 //=========================================================================================================================================
 //Editing anything below this line might break your skill.
 //=========================================================================================================================================
+function trackEvent(category, action, label, value, callbback) {
+  var data = {
+    v: '1', // API Version.
+    tid: GA_TRACKING_ID, // Tracking ID / Property ID.
+    // Anonymous Client Identifier. Ideally, this should be a UUID that
+    // is associated with particular user, device, or browser instance.
+    cid: '555',
+    t: 'event', // Event hit type.
+    ec: category, // Event category.
+    ea: action, // Event action.
+    el: label, // Event label.
+    ev: value, // Event value.
+  };
+
+  request.post(
+    'http://www.google-analytics.com/collect', {
+      form: data
+    },
+    function(err, response) {
+      if (err) { return callbback(err); }
+      if (response.statusCode !== 200) {
+        return callbback(new Error('Tracking failed'));
+      }
+      callbback();
+    }
+  );
+}
 
 exports.handler = function(event, context, callback) {
     var alexa = Alexa.handler(event, context);
@@ -97,11 +126,11 @@ exports.handler = function(event, context, callback) {
 
 const handlers = {
     'LaunchRequest': function () {
-        if(this.attributes['FirstName'] == ''){
-        this.emit(':AskNameIntent');
+        if(this.attributes['FirstName'] == undefined){
+        this.emit('AskNameIntent');
       }
       else{
-        this.emit(':TwistedMovieQuotesIntent')
+        this.emit('TwistedMovieQuotesIntent')
       }
     },
     'AskNameIntent': function () {
@@ -132,9 +161,14 @@ const handlers = {
 
         console.log(randomQuote)
 
-        this.response.cardRenderer(SKILL_NAME, randomQuote4);
-        this.response.speak(speechOutput).listen("Do you want to use a different name for your next quote?");
-        this.emit(':responseReady');
+        if(name == undefined){
+          this.emit('AskNameIntent')
+        }
+        else{
+          this.response.cardRenderer(SKILL_NAME, randomQuote4);
+          this.response.speak(speechOutput);
+          this.emit(':responseReady');
+        }
     },
     'AMAZON.HelpIntent': function () {
         const speechOutput = HELP_MESSAGE;
@@ -151,4 +185,19 @@ const handlers = {
         this.response.speak(STOP_MESSAGE);
         this.emit(':responseReady');
     },
+    //example usage in an intent handler
+    "AMAZON.NoIntent": function (intent, session, response) {
+        trackEvent(
+          'Intent',
+          'AMAZON.NoIntent',
+          'na',
+          '100', // Event value must be numeric.
+          function(err) {
+            if (err) {
+                return next(err);
+            }
+            var speechOutput = "Okay.";
+            response.tell(speechOutput);
+          });
+    }
   };
